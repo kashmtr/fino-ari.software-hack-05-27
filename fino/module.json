@@ -1,0 +1,44 @@
+{
+  "id": "fino",
+  "group": "Finance",
+  "name": "Fino",
+  "description": "Affordability tracker — upload bank statement PDFs, set savings goals, and get a real-time YES/MAYBE/NO verdict when shopping online. Powers the PXPense Chrome extension.",
+  "version": "1.0.0",
+  "author": "Custom",
+  "icon": "Wallet",
+  "enabled": false,
+  "fullscreen": false,
+  "menuPriority": 10,
+  "permissions": {
+    "database": true,
+    "api": true,
+    "dashboard": true
+  },
+  "routes": [
+    {
+      "path": "/fino",
+      "label": "Fino",
+      "icon": "Wallet",
+      "sidebarPosition": "main"
+    }
+  ],
+  "dependencies": {
+    "modules": [],
+    "coreFeatures": []
+  },
+  "database": {
+    "tables": ["fino_transactions", "fino_income_events", "fino_goals", "fino_user_profile"]
+  },
+  "npmDependencies": {
+    "pdf-parse": "^1.1.1"
+  },
+  "dashboard": {
+    "widgets": true,
+    "widgetComponents": ["./components/dashboard-widget.tsx"]
+  },
+  "storage": {
+    "bucket": "fino",
+    "allowedMimeTypes": ["application/pdf"],
+    "maxFileSize": 10485760
+  }
+}
