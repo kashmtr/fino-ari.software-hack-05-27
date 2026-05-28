@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth-helpers'
 import { createErrorResponse } from '@/lib/api-helpers'
+import { IdParamSchema } from '@/modules/fino/lib/validation'
 import { registry } from '@/lib/openapi/registry'
 import { DEFAULT_SECURITY, ErrorResponseSchema, InternalServerErrorResponse } from '@/lib/openapi/common'
 import { finoTransactions } from '@/lib/db/schema'
@@ -13,6 +14,7 @@ registry.registerPath({
   summary: 'Delete a single transaction by ID',
   tags: ['fino'],
   security: DEFAULT_SECURITY,
+  request: { params: IdParamSchema },
   responses: {
     200: { description: 'Transaction deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' } } } as any } } },
     401: { description: 'Unauthorized', content: { 'application/json': { schema: ErrorResponseSchema } } },

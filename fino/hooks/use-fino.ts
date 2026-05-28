@@ -15,7 +15,7 @@ import type {
   UpsertProfileRequest,
 } from '../types'
 
-// ─── Query keys ──────────────────────────────────────────────────────────────
+// --- Query keys --------------------------------------------------------------
 
 const TRANSACTIONS_KEY = (month?: string) => ['fino-transactions', month ?? 'all']
 const STATEMENT_SOURCES_KEY = ['fino-statement-sources']
@@ -25,7 +25,7 @@ const PROFILE_KEY = ['fino-profile']
 const SETTINGS_KEY = ['fino-settings']
 const AFFORDABILITY_KEY = (cartTotal: number) => ['fino-affordability', cartTotal]
 
-// ─── Transactions ─────────────────────────────────────────────────────────────
+// --- Transactions -------------------------------------------------------------
 
 export function useFinoTransactions(month?: string) {
   return useQuery({
@@ -149,7 +149,7 @@ export function useDeleteFinoStatementSource() {
   })
 }
 
-// ─── Goals ────────────────────────────────────────────────────────────────────
+// --- Goals --------------------------------------------------------------------
 
 export function useFinoGoals() {
   return useQuery({
@@ -271,7 +271,7 @@ export function useDeleteFinoGoal() {
   })
 }
 
-// ─── Income ───────────────────────────────────────────────────────────────────
+// --- Income -------------------------------------------------------------------
 
 export function useFinoIncome() {
   return useQuery({
@@ -310,7 +310,7 @@ export function useUpsertFinoIncome() {
   })
 }
 
-// ─── Profile ──────────────────────────────────────────────────────────────────
+// --- Profile ------------------------------------------------------------------
 
 export function useFinoProfile() {
   return useQuery({
@@ -360,7 +360,7 @@ export function useUpsertFinoProfile() {
   })
 }
 
-// ─── Settings ─────────────────────────────────────────────────────────────────
+// --- Settings -----------------------------------------------------------------
 
 export function useFinoSettings() {
   return useQuery({
@@ -402,7 +402,7 @@ export function useUpdateFinoSettings() {
   })
 }
 
-// ─── Affordability ────────────────────────────────────────────────────────────
+// --- Affordability ------------------------------------------------------------
 
 export function useFinoAffordability(cartTotal: number) {
   return useQuery({

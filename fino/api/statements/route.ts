@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth-helpers'
 import { validateQueryParams, createErrorResponse, toSnakeCase } from '@/lib/api-helpers'
 import {
@@ -33,7 +33,7 @@ registry.registerPath({
   method: 'post',
   path: '/api/modules/fino/statements',
   operationId: 'finoUploadStatement',
-  summary: 'Upload a PDF bank statement — parses text and bulk-inserts transactions',
+  summary: 'Upload a PDF bank statement - parses text and bulk-inserts transactions',
   tags: ['fino'],
   security: DEFAULT_SECURITY,
   request: { body: { content: { 'multipart/form-data': { schema: UploadStatementFormSchema } } } },
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ─── PDF parsing helpers ───────────────────────────────────────────────────
+// --- PDF parsing helpers ---------------------------------------------------
 
 interface ParsedRow {
   date: string
@@ -95,6 +95,10 @@ interface ParsedRow {
 const MONTH_MAP: Record<string, string> = {
   jan:'01', feb:'02', mar:'03', apr:'04', may:'05', jun:'06',
   jul:'07', aug:'08', sep:'09', oct:'10', nov:'11', dec:'12',
+}
+const MONTH_NAME_MAP: Record<string, string> = {
+  january:'01', february:'02', march:'03', april:'04', may:'05', june:'06',
+  july:'07', august:'08', september:'09', october:'10', november:'11', december:'12',
 }
 const MONTH_ALT = Object.keys(MONTH_MAP).map(m => m.toUpperCase()).join('|')
 
@@ -116,7 +120,12 @@ const SINGLE_LINE_DATE_PATTERNS = [
     fn: (m: RegExpMatchArray) => `${m[3]}-${MONTH_MAP[m[2].toLowerCase()]}-${m[1].padStart(2,'0')}`,
   },
 ]
-const INLINE_AMOUNT_RE = /[-−]?\s*[£$€]?\s*([\d,]+\.?\d{0,2})\b/g
+const _MINUS = String.fromCharCode(0x2212)
+const _POUND = String.fromCharCode(0x00a3)
+const _EURO  = String.fromCharCode(0x20ac)
+const INLINE_AMOUNT_RE = new RegExp(
+  '[-' + _MINUS + ']?\\s*[' + _POUND + '$' + _EURO + ']?\\s*([\\d,]+\\.?\\d{0,2})\\b', 'g'
+)
 
 function extractYear(lines: string[]): number {
   // Look for a 4-digit year in the document (statement period header, etc.)
@@ -197,7 +206,7 @@ function parseSingleLine(line: string): ParsedRow | null {
   let match: RegExpExecArray | null
   INLINE_AMOUNT_RE.lastIndex = 0
   while ((match = INLINE_AMOUNT_RE.exec(trimmed)) !== null) {
-    const raw = match[0].replace(/,/g, '').replace(/[£$€\s]/g, '').replace('−', '-')
+    const raw = match[0].replace(/,/g, ' ').replace(new RegExp('[' + _POUND + '$' + _EURO + '\\s]', 'g'), ' ').replace(_MINUS, '-')
     const n = parseFloat(raw)
     if (!isNaN(n) && Math.abs(n) > 0) amounts.push(n)
   }
@@ -206,7 +215,7 @@ function parseSingleLine(line: string): ParsedRow | null {
   const amount = amounts[amounts.length - 1]
   const desc = trimmed
     .replace(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}/gi, '')
-    .replace(/[-−]?\s*[£$€]?\s*[\d,]+\.?\d{0,2}/g, '')
+    .replace(new RegExp('[-' + _MINUS + ']?\\s*[' + _POUND + '$' + _EURO + ']?\\s*[\\d,]+\\.?\\d{0,2}', 'g'), ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -214,7 +223,7 @@ function parseSingleLine(line: string): ParsedRow | null {
   return { date, amount, description: desc.slice(0, 200) }
 }
 
-// ─── RBC Chequing / bank statement parser ─────────────────────────────────
+// --- RBC Chequing / bank statement parser ----------------------------------
 // Format: 5 columns (Date, Description, Withdrawals, Deposits, Balance)
 // pdf-parse concatenates all columns onto each line with no separators.
 // Date lines start with "D MMM" or "DD MMM" (no year).
@@ -223,12 +232,19 @@ function parseSingleLine(line: string): ParsedRow | null {
 // Continuation lines (no date) are extra description text for the previous tx date.
 
 const CHEQ_DATE_RE = /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*/i
-// Two decimal amounts at end of line (commas allowed for thousands)
-const TWO_AMT_RE = /([\d,]+\.\d{2})([\d,]+\.\d{2})$/
-// One decimal amount at end of line
-const ONE_AMT_RE = /([\d,]+\.\d{2})$/
-// Keywords that identify deposit (income) transactions
-const DEPOSIT_KEYWORDS_RE = /payroll deposit|deposit|e-transfer received|received|credit|salary|income|refund/i
+// Two concatenated decimal numbers at line end: (tx_amount)(running_balance)
+// Group 2 is the authoritative balance; delta from prevBalance = tx amount
+const TWO_DECIMALS_RE = /(\d[\d,]*\.\d{2})\s+(\d[\d,]*\.\d{2})$/
+// Single decimal with proper comma-formatting (e.g. 150.00 or 1,406.12)
+// Limits to 1-3 leading digits to avoid swallowing reference-code digit prefixes
+const ONE_DECIMAL_RE = /(\d{1,3}(?:,\d{3})*\.\d{2})$/
+// Specific deposit keywords only - avoids false positives like "Deposit Account"
+const DEPOSIT_KEYWORDS_RE = /\bpayroll deposit\b|\be-transfer received\b|\bsalary\b|\bincome\b|\brefund\b/i
+
+// Strip trailing number chain + trailing punctuation/whitespace from a description string
+function stripTrailingNumbers(s: string): string {
+  return s.replace(/[\d,.]+$/, '').replace(/[\s\-,.:()|]+$/, '').trim().replace(/\s+/g, ' ')
+}
 
 function parseChequingFormat(lines: string[]): ParsedRow[] {
   // Detect format: look for the chequing column header
@@ -255,7 +271,8 @@ function parseChequingFormat(lines: string[]): ParsedRow[] {
   // Opening balance from header
   let prevBalance: number | null = null
   for (const line of lines) {
-    const m = line.match(/opening balance[^$\d]*([\d,.]+)/i)
+    // Anchor to start-of-line "Opening Balance" to avoid matching "opening balance on December 18..."
+    const m = line.trim().match(/^Opening Balance\s*([\d,.]+)/i)
     if (m) { prevBalance = parseFloat(m[1].replace(/,/g, '')); break }
   }
 
@@ -291,36 +308,26 @@ function parseChequingFormat(lines: string[]): ParsedRow[] {
     const body = line.replace(CHEQ_DATE_RE, '').trim()
     if (body.length < 2) continue
 
-    const twoAmt = body.match(TWO_AMT_RE)
-    if (twoAmt) {
-      const txAmt = parseFloat(twoAmt[1].replace(/,/g, ''))
-      const newBalance = parseFloat(twoAmt[2].replace(/,/g, ''))
-      if (txAmt === 0) continue
-
-      // Sign from balance delta; fallback to keywords
-      let amount: number
-      if (prevBalance !== null) {
-        const delta = newBalance - prevBalance
-        amount = Math.abs(delta) < 1 ? txAmt : (delta > 0 ? txAmt : -txAmt)
-      } else {
-        amount = DEPOSIT_KEYWORDS_RE.test(body) ? txAmt : -txAmt
-      }
-
-      const desc = body.slice(0, body.length - twoAmt[0].length).trim().replace(/\s+/g, ' ')
+    const twoMatch = body.match(TWO_DECIMALS_RE)
+    if (twoMatch) {
+      // Balance-delta approach: second group is the authoritative running balance
+      const newBalance = parseFloat(twoMatch[2].replace(/,/g, ''))
+      if (prevBalance === null) { prevBalance = newBalance; continue }
+      const delta = Math.round((newBalance - prevBalance) * 100) / 100
+      if (Math.abs(delta) < 0.005) continue
+      const desc = stripTrailingNumbers(body)
       prevBalance = newBalance
-      if (desc.length >= 2) results.push({ date: currentDate, amount, description: desc.slice(0, 200) })
+      if (desc.length >= 2) results.push({ date: currentDate, amount: delta, description: desc.slice(0, 200) })
       continue
     }
 
-    const oneAmt = body.match(ONE_AMT_RE)
-    if (oneAmt) {
-      const txAmt = parseFloat(oneAmt[1].replace(/,/g, ''))
-      if (txAmt === 0) continue
-
+    const oneMatch = body.match(ONE_DECIMAL_RE)
+    if (oneMatch) {
+      const txAmt = parseFloat(oneMatch[1].replace(/,/g, ''))
+      if (txAmt < 0.005) continue
       const isDeposit = DEPOSIT_KEYWORDS_RE.test(body)
       const amount = isDeposit ? txAmt : -txAmt
-      const desc = body.slice(0, body.length - oneAmt[0].length).trim().replace(/\s+/g, ' ')
-
+      const desc = stripTrailingNumbers(body)
       if (prevBalance !== null) prevBalance += amount
       if (desc.length >= 2) results.push({ date: currentDate, amount, description: desc.slice(0, 200) })
     }
@@ -329,14 +336,196 @@ function parseChequingFormat(lines: string[]): ParsedRow[] {
   return results
 }
 
-function parseTransactions(lines: string[]): ParsedRow[] {
-  // Try chequing format first (RBC bank statement with 5 columns)
+// --- Coordinate-aware chequing parser (pdfjs-dist) -------------------------
+// Reads each text item's x/y position so it knows which column (Withdrawals,
+// Deposits, Balance) each number belongs to — no keyword guessing needed.
+// Column boundaries are detected from the header row of the specific PDF, so
+// the parser works regardless of margin or layout differences between periods.
+
+async function parseChequingWithCoords(pdfBuffer: Buffer): Promise<ParsedRow[]> {
+  // Suppress harmless canvas polyfill warnings pdfjs-dist emits in Node.js
+  const origWarn = console.warn
+  console.warn = () => {}
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let pdfDoc: any
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js')
+    pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) }).promise
+  } finally {
+    console.warn = origWarn
+  }
+
+  interface PdfItem { x: number; y: number; width: number; text: string }
+  const allItems: PdfItem[] = []
+  let pageYOffset = 0
+
+  for (let p = 1; p <= pdfDoc.numPages; p++) {
+    const page = await pdfDoc.getPage(p)
+    const viewport = page.getViewport({ scale: 1 })
+    const content = await page.getTextContent()
+    const pageHeight = (viewport as { height: number }).height
+
+    for (const raw of content.items) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const item = raw as any
+      if (!item.str?.trim() || !Array.isArray(item.transform)) continue
+      const x: number = item.transform[4]
+      const yTopDown = pageHeight - item.transform[5]
+      const w: number = item.width ?? 0
+      allItems.push({ x, y: pageYOffset + yTopDown, width: w, text: item.str.trim() })
+    }
+
+    pageYOffset += pageHeight + 50
+  }
+
+  if (allItems.length === 0) return []
+
+  // --- Year + end-month from statement header text -------------------------
+  const fullText = allItems.map(i => i.text).join(' ')
+  let startYear = new Date().getFullYear()
+  let endYear = startYear
+  let endMonth = 12
+
+  const fromMatch = fullText.match(/From.*?(\d{4}).*?to.*?(\d{4})/i)
+  if (fromMatch) {
+    startYear = parseInt(fromMatch[1])
+    endYear   = parseInt(fromMatch[2])
+  }
+  const endMonthMatch = fullText.match(
+    /to\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i
+  )
+  if (endMonthMatch) {
+    const key = endMonthMatch[1].toLowerCase()
+    endMonth = parseInt(MONTH_MAP[key] ?? MONTH_NAME_MAP[key] ?? '12')
+  }
+
+  // --- Group items into rows by y-coordinate (4-unit tolerance for jitter) ---
+  const rowMap = new Map<number, PdfItem[]>()
+  for (const item of allItems) {
+    const key = Math.round(item.y / 4) * 4
+    if (!rowMap.has(key)) rowMap.set(key, [])
+    rowMap.get(key)!.push(item)
+  }
+  const rows = Array.from(rowMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([, items]) => items.sort((a, b) => a.x - b.x))
+
+  // --- Find header row (contains "Withdrawals" AND "Deposits") -------------
+  let headerIdx = -1
+  let withdrawalLeft = 0
+  let withdrawalRight = 0
+  let depositRight = 0
+  let balanceRight = 0
+
+  for (let i = 0; i < rows.length; i++) {
+    const rowText = rows[i].map(it => it.text).join(' ').toLowerCase()
+    if (!rowText.includes('withdrawal') || !rowText.includes('deposit')) continue
+
+    const wItem = rows[i].find(it => it.text.toLowerCase().includes('withdrawal'))
+    const dItem = rows[i].find(it => it.text.toLowerCase().includes('deposit') && !it.text.toLowerCase().includes('withdrawal'))
+    const bItem = rows[i].find(it => it.text.toLowerCase().includes('balance'))
+    if (!wItem || !dItem || !bItem) continue
+
+    headerIdx = i
+    withdrawalLeft  = wItem.x
+    withdrawalRight = wItem.x + (wItem.width > 0 ? wItem.width : wItem.text.length * 6)
+    depositRight    = dItem.x + (dItem.width > 0 ? dItem.width : dItem.text.length * 6)
+    balanceRight    = bItem.x + (bItem.width > 0 ? bItem.width : bItem.text.length * 6)
+    break
+  }
+
+  if (headerIdx < 0) return []
+
+  // --- Parse data rows below header ----------------------------------------
+  // Numbers are right-aligned: classify by which column's right edge they're closest to.
+  const NUMBER_RE = /^[\d,]+\.\d{2}$/
+  const results: ParsedRow[] = []
+  let currentDate: string | null = null
+
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i]
+    const rowText = row.map(it => it.text).join(' ')
+
+    if (/opening balance|closing balance|total deposits|total withdrawals|please (check|retain)|important information/i.test(rowText)) continue
+
+    // Items left of withdrawal column = date + description band
+    const descItems   = row.filter(it => it.x < withdrawalLeft)
+    const amountItems = row.filter(it => it.x >= withdrawalLeft && NUMBER_RE.test(it.text))
+
+    // Date detection from description band
+    const descText = descItems.map(it => it.text).join(' ')
+    const dateMatch = descText.match(/(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i)
+    if (dateMatch) {
+      const day = parseInt(dateMatch[1])
+      const mon = dateMatch[2].toLowerCase()
+      const monthNum = parseInt(MONTH_MAP[mon])
+      const year = monthNum > endMonth ? startYear : endYear
+      currentDate = `${year}-${MONTH_MAP[mon]}-${String(day).padStart(2, '0')}`
+    }
+
+    if (!currentDate) continue
+
+    const description = descText
+      .replace(/\d{1,2}\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*/i, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200)
+
+    if (!description || description.length < 2) continue
+    if (amountItems.length === 0) continue
+
+    // Classify each number by right-edge proximity to the column header right edges
+    let withdrawal: number | null = null
+    let deposit: number | null = null
+
+    for (const item of amountItems) {
+      const rightEdge = item.x + (item.width > 0 ? item.width : item.text.length * 6)
+      const wDist = Math.abs(rightEdge - withdrawalRight)
+      const dDist = Math.abs(rightEdge - depositRight)
+      const bDist = Math.abs(rightEdge - balanceRight)
+
+      if (bDist <= wDist && bDist <= dDist) continue // balance column → skip
+
+      const val = parseFloat(item.text.replace(/,/g, ''))
+      if (dDist < wDist) {
+        deposit = val
+      } else {
+        withdrawal = val
+      }
+    }
+
+    let amount: number | null = null
+    if (withdrawal !== null && deposit === null) amount = -withdrawal
+    else if (deposit !== null && withdrawal === null) amount = deposit
+    else if (withdrawal !== null && deposit !== null) {
+      amount = deposit > withdrawal ? deposit : -withdrawal
+    }
+
+    if (amount === null || Math.abs(amount) < 0.005) continue
+
+    results.push({ date: currentDate, amount, description })
+  }
+
+  return results
+}
+
+async function parseTransactions(lines: string[], pdfBuffer?: Buffer): Promise<ParsedRow[]> {
+  // Coordinate-aware parser first — most reliable for chequing statements
+  if (pdfBuffer) {
+    try {
+      const coordResults = await parseChequingWithCoords(pdfBuffer)
+      if (coordResults.length > 0) return coordResults
+    } catch (e) {
+      console.warn('parseChequingWithCoords failed, falling back:', e instanceof Error ? e.message : e)
+    }
+  }
+  // Fallback: regex-based parsers for non-chequing or unsupported formats
   const chequingResults = parseChequingFormat(lines)
   if (chequingResults.length > 0) return chequingResults
-  // Try multi-line format (RBC credit card)
   const multiResults = parseMultiLine(lines)
   if (multiResults.length > 0) return multiResults
-  // Fall back to classic single-line format
   return lines.map(parseSingleLine).filter((r): r is ParsedRow => r !== null)
 }
 
@@ -356,26 +545,27 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('File must be 10 MB or smaller', 400)
     }
 
+    // Read PDF bytes once — reused for storage, text extraction, and coordinate parser
+    const pdfArrayBuffer = await file.arrayBuffer()
+    const pdfBuffer = Buffer.from(pdfArrayBuffer)
+
     // Store the PDF for audit trail
     let storedFilename = file.name
     try {
       const provider = getStorageProvider(readStorageConfig())
-      const arrayBuffer = await file.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
       storedFilename = `${Date.now()}-${file.name}`
-      await provider.upload(user.id, 'fino', storedFilename, buffer, 'application/pdf')
+      await provider.upload(user.id, 'fino', storedFilename, pdfBuffer, 'application/pdf')
     } catch (_storageErr) {
-      // Storage failure is non-fatal — we still parse and return results
+      // Storage failure is non-fatal - we still parse and return results
     }
 
-    // Parse PDF text — pdf-parse is a CJS module listed in serverExternalPackages
+    // Parse PDF text with pdf-parse (used by fallback text-based parsers)
     let text = ''
     let parseWarning: string | null = null
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
-      const arrayBuffer = await file.arrayBuffer()
-      const result = await pdfParse(Buffer.from(arrayBuffer))
+      const result = await pdfParse(pdfBuffer)
       text = result.text
     } catch (parseErr) {
       console.error('PDF parse error:', parseErr instanceof Error ? parseErr.message : parseErr)
@@ -383,12 +573,10 @@ export async function POST(request: NextRequest) {
     }
 
     const rows: ParsedRow[] = []
-    if (text) {
-      const lines = text.split('\n')
-      rows.push(...parseTransactions(lines))
-      if (rows.length === 0) {
-        parseWarning = 'No transactions could be extracted from this PDF. The format may not be supported — try a different bank statement export.'
-      }
+    const lines = text ? text.split('\n') : []
+    rows.push(...await parseTransactions(lines, pdfBuffer))
+    if (rows.length === 0) {
+      parseWarning = parseWarning ?? 'No transactions could be extracted from this PDF. The format may not be supported - try a different bank statement export.'
     }
 
     if (rows.length === 0) {

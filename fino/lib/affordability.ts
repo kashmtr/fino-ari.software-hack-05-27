@@ -10,11 +10,17 @@ export interface AffordabilityInput {
   goalsCommitment: number        // sum of all goals' monthly_contribution
   monthlySavingsTarget: number   // from profile
   savingsBuffer: number          // YES threshold from profile
+  historicalDailyRate: number | null         // avg daily spend from historical statements; null if no history
+  historicalSpendingAtThisDay: number | null // avg spend by day N across past months; null if no history
+  daysElapsed: number                        // days into the current month (1-based, today counts)
+  daysInMonth: number                        // total days in the current month
 }
 
 export interface AffordabilityResult {
   verdict: AffordabilityVerdict
   projectedMonthEnd: number
+  projectedTotalSpending: number
+  dailyRateUsed: number
   incomeUsed: number
   incomeSource: 'statement' | 'forecast' | 'historical_average' | 'none'
   incomeWarning: boolean
@@ -50,9 +56,16 @@ function resolveIncome(input: AffordabilityInput): {
 export function calculateAffordability(input: AffordabilityInput): AffordabilityResult {
   const { incomeUsed, incomeSource, incomeWarning } = resolveIncome(input)
 
+  // Project remaining spending using historical daily rate when available,
+  // falling back to current month's rate if there's no history yet.
+  const daysElapsed = Math.max(1, input.daysElapsed)
+  const daysLeft = Math.max(0, input.daysInMonth - daysElapsed)
+  const dailyRate = input.historicalDailyRate ?? (input.currentMonthSpending / daysElapsed)
+  const projectedTotalSpending = input.currentMonthSpending + dailyRate * daysLeft
+
   const projectedMonthEnd =
     incomeUsed
-    - input.currentMonthSpending
+    - projectedTotalSpending
     - input.cartTotal
     - input.goalsCommitment
     - input.monthlySavingsTarget
@@ -66,5 +79,5 @@ export function calculateAffordability(input: AffordabilityInput): Affordability
     verdict = 'NO'
   }
 
-  return { verdict, projectedMonthEnd, incomeUsed, incomeSource, incomeWarning }
+  return { verdict, projectedMonthEnd, projectedTotalSpending, dailyRateUsed: dailyRate, incomeUsed, incomeSource, incomeWarning }
 }

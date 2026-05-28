@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth-helpers'
 import { validateRequestBody, createErrorResponse, toSnakeCase } from '@/lib/api-helpers'
-import { UpdateGoalSchema, GoalSingleResponseSchema } from '@/modules/fino/lib/validation'
+import { UpdateGoalSchema, GoalSingleResponseSchema, IdParamSchema } from '@/modules/fino/lib/validation'
 import { registry } from '@/lib/openapi/registry'
 import { DEFAULT_SECURITY, ErrorResponseSchema, InternalServerErrorResponse } from '@/lib/openapi/common'
 import { finoGoals } from '@/lib/db/schema'
@@ -14,7 +14,7 @@ registry.registerPath({
   summary: 'Update a savings goal',
   tags: ['fino'],
   security: DEFAULT_SECURITY,
-  request: { body: { content: { 'application/json': { schema: UpdateGoalSchema } } } },
+  request: { params: IdParamSchema, body: { content: { 'application/json': { schema: UpdateGoalSchema } } } },
   responses: {
     200: { description: 'Updated goal', content: { 'application/json': { schema: GoalSingleResponseSchema } } },
     400: { description: 'Validation error', content: { 'application/json': { schema: ErrorResponseSchema } } },
@@ -31,6 +31,7 @@ registry.registerPath({
   summary: 'Delete a savings goal',
   tags: ['fino'],
   security: DEFAULT_SECURITY,
+  request: { params: IdParamSchema },
   responses: {
     200: { description: 'Deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' } } } as any } } },
     401: { description: 'Unauthorized', content: { 'application/json': { schema: ErrorResponseSchema } } },

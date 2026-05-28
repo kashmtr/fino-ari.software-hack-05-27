@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Wallet, TrendingUp, TrendingDown, Target, ArrowRight, Loader2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Target, ArrowRight, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import type { AffordabilityResponse, FinoGoal } from '../types'
 
@@ -21,7 +22,7 @@ function VerdictChip({ verdict }: { verdict: string }) {
 }
 
 function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
 export default function FinoDashboardWidget() {
@@ -58,7 +59,7 @@ export default function FinoDashboardWidget() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <Wallet className="size-4" />
+          <Image src="/fino-logo.png" alt="Fino" width={80} height={80} className="rounded-full object-contain" />
           Fino — {monthLabel}
         </CardTitle>
         <Button variant="ghost" size="sm" asChild>
@@ -136,6 +137,12 @@ export default function FinoDashboardWidget() {
             {affordability.income_warning && (
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 ⚠ Income estimated — upload a statement for accuracy
+              </p>
+            )}
+
+            {affordability.explanation && (
+              <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                {affordability.explanation}
               </p>
             )}
           </div>

@@ -27,7 +27,7 @@ import type { CreateGoalRequest, FinoGoal } from '../types'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 2 }).format(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n)
 }
 
 function currentMonthStart() {
@@ -160,7 +160,7 @@ function OnboardingScreen({ onComplete }: { onComplete: () => void }) {
           {step === 1 && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="income">Monthly income (£)</Label>
+                <Label htmlFor="income">Monthly income ($)</Label>
                 <Input
                   id="income"
                   type="number"
@@ -181,7 +181,7 @@ function OnboardingScreen({ onComplete }: { onComplete: () => void }) {
           {step === 2 && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="buffer">Savings buffer (£)</Label>
+                <Label htmlFor="buffer">Savings buffer ($)</Label>
                 <Input
                   id="buffer"
                   type="number"
@@ -193,7 +193,7 @@ function OnboardingScreen({ onComplete }: { onComplete: () => void }) {
                 {errors.savingsBuffer && <p className="text-xs text-red-500">{errors.savingsBuffer}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="target">Monthly savings target (£)</Label>
+                <Label htmlFor="target">Monthly savings target ($)</Label>
                 <Input
                   id="target"
                   type="number"
@@ -240,7 +240,7 @@ function OverviewTab() {
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">£</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
               <Input
                 type="number"
                 placeholder="0.00"
@@ -276,6 +276,11 @@ function OverviewTab() {
                 {affordability.income_warning && (
                   <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
                     <Info className="size-3" /> Income estimated — upload a statement for accuracy
+                  </p>
+                )}
+                {affordability.explanation && (
+                  <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2 leading-relaxed">
+                    {affordability.explanation}
                   </p>
                 )}
               </div>
@@ -344,7 +349,7 @@ function OverviewTab() {
 function formatDateRange(from: string, to: string) {
   const fmt = (d: string) => {
     const dt = new Date(d + 'T00:00:00')
-    return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    return dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
   }
   return `${fmt(from)} – ${fmt(to)}`
 }
@@ -633,12 +638,12 @@ function GoalsTab() {
               {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="goal-target">Target amount (£)</Label>
+              <Label htmlFor="goal-target">Target amount ($)</Label>
               <Input id="goal-target" type="number" min="0" value={form.target_amount || ''} onChange={(e) => updateField('target_amount', parseFloat(e.target.value) || 0)} className={inputClass('target_amount')} />
               {errors.target_amount && <p className="text-xs text-red-500">{errors.target_amount}</p>}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="goal-contribution">Monthly contribution (£)</Label>
+              <Label htmlFor="goal-contribution">Monthly contribution ($)</Label>
               <Input id="goal-contribution" type="number" min="0" value={form.monthly_contribution || ''} onChange={(e) => updateField('monthly_contribution', parseFloat(e.target.value) || 0)} className={inputClass('monthly_contribution')} />
               {errors.monthly_contribution && <p className="text-xs text-red-500">{errors.monthly_contribution}</p>}
             </div>
@@ -703,7 +708,7 @@ function IncomeTab() {
         )}
       </div>
       <div className="space-y-1">
-        <Label htmlFor="income-amount">Monthly income (£)</Label>
+        <Label htmlFor="income-amount">Monthly income ($)</Label>
         <Input
           id="income-amount"
           type="number"
@@ -762,7 +767,7 @@ function SettingsTab() {
   return (
     <div className="max-w-sm space-y-4">
       <div className="space-y-1">
-        <Label htmlFor="settings-buffer">Savings buffer (£)</Label>
+        <Label htmlFor="settings-buffer">Savings buffer ($)</Label>
         <Input
           id="settings-buffer"
           type="number"
@@ -774,7 +779,7 @@ function SettingsTab() {
         {errors.savingsBuffer && <p className="text-xs text-red-500">{errors.savingsBuffer}</p>}
       </div>
       <div className="space-y-1">
-        <Label htmlFor="settings-target">Monthly savings target (£)</Label>
+        <Label htmlFor="settings-target">Monthly savings target ($)</Label>
         <Input
           id="settings-target"
           type="number"
@@ -787,7 +792,7 @@ function SettingsTab() {
       </div>
       <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
         <p className="font-medium text-foreground">Chrome Extension</p>
-        <p>Generate an API key in <strong>Settings → API</strong> and enter it in the PXPense extension to enable live affordability checks while you shop.</p>
+        <p>Load the Fino Chrome extension from the <code>fino_extension/</code> folder and make sure you're logged into ARI in the same browser to enable live affordability checks while you shop.</p>
       </div>
       <Button onClick={handleSave} disabled={upsertProfile.isPending}>
         {upsertProfile.isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : null}

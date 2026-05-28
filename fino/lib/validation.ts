@@ -6,7 +6,7 @@ const uuidSchema = z.string().uuid('Invalid ID format')
 // ISO date (YYYY-MM-DD)
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
 
-// ─── Affordability ────────────────────────────────────────────────────────
+// --- Affordability --------------------------------------------------------
 
 export const AffordabilityRequestSchema = z.object({
   cart_total: z.number().positive('Cart total must be a positive number'),
@@ -15,6 +15,9 @@ export const AffordabilityRequestSchema = z.object({
 export const AffordabilityResponseSchema = z.object({
   verdict: z.enum(['YES', 'MAYBE', 'NO']),
   projected_month_end: z.number(),
+  projected_total_spending: z.number(),
+  historical_daily_rate: z.number().nullable(),
+  historical_spending_at_this_day: z.number().nullable(),
   income_used: z.number(),
   income_source: z.enum(['statement', 'forecast', 'historical_average', 'none']),
   income_warning: z.boolean(),
@@ -23,9 +26,10 @@ export const AffordabilityResponseSchema = z.object({
   savings_target: z.number(),
   savings_buffer: z.number(),
   cart_total: z.number(),
+  explanation: z.string(),
 }).openapi('FinoAffordabilityResponse')
 
-// ─── Transactions ─────────────────────────────────────────────────────────
+// --- Transactions ---------------------------------------------------------
 
 export const TransactionSchema = z.object({
   id: z.string().uuid(),
@@ -61,7 +65,7 @@ export const UploadStatementResponseSchema = z.object({
   filename: z.string(),
 }).openapi('FinoUploadStatementResponse')
 
-// ─── Goals ────────────────────────────────────────────────────────────────
+// --- Goals ----------------------------------------------------------------
 
 export const GoalSchema = z.object({
   id: z.string().uuid(),
@@ -96,7 +100,7 @@ export const UpdateGoalSchema = z.object({
   monthly_contribution: z.number().min(0, 'Monthly contribution cannot be negative').optional(),
 }).openapi('FinoUpdateGoalBody')
 
-// ─── Income ───────────────────────────────────────────────────────────────
+// --- Income ---------------------------------------------------------------
 
 export const IncomeEventSchema = z.object({
   id: z.string().uuid(),
@@ -115,7 +119,7 @@ export const UpsertIncomeSchema = z.object({
   note: z.string().max(200, 'Note must be 200 characters or fewer').nullable().optional(),
 }).openapi('FinoUpsertIncomeBody')
 
-// ─── Profile ──────────────────────────────────────────────────────────────
+// --- Profile --------------------------------------------------------------
 
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),
@@ -131,7 +135,7 @@ export const UpsertProfileSchema = z.object({
   monthly_savings_target: z.number().min(0, 'Monthly savings target cannot be negative').optional(),
 }).openapi('FinoUpsertProfileBody')
 
-// ─── Settings ─────────────────────────────────────────────────────────────
+// --- Settings -------------------------------------------------------------
 
 export const FinoSettingsSchema = z.object({
   onboardingCompleted: z.boolean().optional(),
@@ -141,8 +145,12 @@ export const SettingsSavedSchema = z.object({
   success: z.literal(true),
 }).openapi('FinoSettingsSaved')
 
-// ─── Shared ───────────────────────────────────────────────────────────────
+// --- Shared ---------------------------------------------------------------
 
 export const DeleteQuerySchema = z.object({
+  id: uuidSchema,
+})
+
+export const IdParamSchema = z.object({
   id: uuidSchema,
 })

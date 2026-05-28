@@ -1,4 +1,4 @@
-// ─── Database row types ──────────────────────────────────────────────────
+// --- Database row types --------------------------------------------------
 
 export interface FinoTransaction {
   id: string
@@ -41,7 +41,7 @@ export interface FinoUserProfile {
   updated_at: string
 }
 
-// ─── Request types ───────────────────────────────────────────────────────
+// --- Request types -------------------------------------------------------
 
 export interface CreateGoalRequest {
   name: string
@@ -72,13 +72,16 @@ export interface AffordabilityRequest {
   cart_total: number
 }
 
-// ─── Response types ──────────────────────────────────────────────────────
+// --- Response types ------------------------------------------------------
 
 export type AffordabilityVerdict = 'YES' | 'MAYBE' | 'NO'
 
 export interface AffordabilityResponse {
   verdict: AffordabilityVerdict
   projected_month_end: number
+  projected_total_spending: number
+  historical_daily_rate: number | null
+  historical_spending_at_this_day: number | null
   income_used: number
   income_source: 'statement' | 'forecast' | 'historical_average' | 'none'
   income_warning: boolean
@@ -87,6 +90,7 @@ export interface AffordabilityResponse {
   savings_target: number
   savings_buffer: number
   cart_total: number
+  explanation: string
 }
 
 export interface StatementSource {
@@ -122,7 +126,7 @@ export interface ApiErrorResponse {
   details?: unknown
 }
 
-// ─── Settings (onboarding) ───────────────────────────────────────────────
+// --- Settings (onboarding) -----------------------------------------------
 
 export interface FinoSettings {
   onboardingCompleted: boolean

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth-helpers'
 import { validateRequestBody, createErrorResponse, toSnakeCase } from '@/lib/api-helpers'
 import { UpsertProfileSchema, UserProfileSchema } from '@/modules/fino/lib/validation'
