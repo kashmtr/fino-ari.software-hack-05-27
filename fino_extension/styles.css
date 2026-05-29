@@ -1,0 +1,184 @@
+/* ── Reset + base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0F0D0A;
+  color: #E8E0D5;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 14px;
+  width: 380px;
+  min-height: 120px;
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+/* ── Utility ── */
+.hidden { display: none !important; }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #1E1A14;
+}
+.header-title { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; display: flex; align-items: center; gap: 7px; }
+.header-logo { width: 200px; height: 200px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
+.header-cart  { font-size: 13px; color: #9B8E82; }
+.btn-settings {
+  background: none; border: none; color: #9B8E82; cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 4px;
+}
+.btn-settings:hover { color: #C7842E; }
+.btn-back {
+  background: none; border: none; color: #C7842E; cursor: pointer;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.03em;
+  padding: 0; display: flex; align-items: center; gap: 4px;
+}
+
+/* ── Body padding ── */
+.body { padding: 16px; }
+
+/* ── Onboarding steps ── */
+.step-indicator {
+  display: flex; gap: 6px; margin-bottom: 18px; justify-content: center;
+}
+.step-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #2A2520;
+}
+.step-dot.active  { background: #C7842E; }
+.step-dot.done    { background: #C7842E; opacity: 0.45; }
+
+.step-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.step-sub   { font-size: 12px; color: #9B8E82; margin-bottom: 16px; }
+
+/* ── Form elements ── */
+label { display: block; font-size: 12px; color: #9B8E82; margin-bottom: 4px; margin-top: 12px; }
+label:first-child { margin-top: 0; }
+
+input[type="text"], input[type="number"], input[type="date"],
+input[type="file"], select {
+  width: 100%;
+  background: #1A1610;
+  border: 1px solid #2E2820;
+  border-radius: 6px;
+  color: #E8E0D5;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+input:focus, select:focus { border-color: #C7842E; }
+input[type="file"] { padding: 6px 10px; cursor: pointer; }
+input[type="file"]::file-selector-button {
+  background: #2A2520; border: none; border-radius: 4px;
+  color: #E8E0D5; cursor: pointer; font-size: 12px; padding: 4px 10px; margin-right: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-weight: 600; padding: 9px 16px; width: 100%;
+  letter-spacing: 0.02em;
+}
+.btn-primary { background: #C7842E; color: #0F0D0A; margin-top: 16px; }
+.btn-primary:hover { background: #D99840; }
+.btn-secondary { background: #1A1610; border: 1px solid #2E2820; color: #9B8E82; margin-top: 8px; }
+.btn-secondary:hover { border-color: #C7842E; color: #C7842E; }
+.btn-danger { background: none; border: none; color: #EF4444; cursor: pointer; font-size: 12px; padding: 2px 6px; }
+.btn-small { padding: 6px 12px; font-size: 12px; width: auto; }
+
+/* ── Spinner ── */
+.spinner-wrap { text-align: center; padding: 24px 0; }
+.spinner {
+  display: inline-block; width: 28px; height: 28px;
+  border: 3px solid #2A2520; border-top-color: #C7842E;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-label { font-size: 12px; color: #9B8E82; margin-top: 8px; }
+
+/* ── Verdict card ── */
+.verdict-card {
+  border-radius: 8px; padding: 18px 16px; margin-bottom: 12px;
+  border: 1px solid transparent;
+}
+.verdict-yes   { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+.verdict-maybe { background: rgba(199,132,46, 0.08); border-color: rgba(199,132,46, 0.2); }
+.verdict-no    { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+
+.verdict-emoji { font-size: 24px; margin-bottom: 4px; }
+.verdict-label {
+  font-size: 20px; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 8px;
+}
+.verdict-yes   .verdict-label { color: #22c55e; }
+.verdict-maybe .verdict-label { color: #C7842E; }
+.verdict-no    .verdict-label { color: #EF4444; }
+
+.verdict-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12px; color: #9B8E82; margin-top: 4px;
+}
+.verdict-row-val {
+  font-size: 13px; font-weight: 600; color: #E8E0D5;
+  font-variant-numeric: tabular-nums;
+}
+.verdict-row-val.positive { color: #22c55e; }
+.verdict-row-val.negative { color: #EF4444; }
+
+/* ── Warning banner ── */
+.warning-banner {
+  background: rgba(199,132,46, 0.12); border: 1px solid rgba(199,132,46, 0.3);
+  border-radius: 6px; font-size: 11px; color: #C7842E;
+  padding: 8px 10px; margin-bottom: 12px; line-height: 1.4;
+}
+
+/* ── Re-check row ── */
+.recheck-row {
+  display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+}
+.recheck-row input { flex: 1; margin: 0; }
+
+/* ── Not-on-checkout prompt ── */
+.neutral-prompt {
+  text-align: center; padding: 20px 0; color: #9B8E82;
+  font-size: 13px; line-height: 1.5;
+}
+.neutral-prompt strong { display: block; font-size: 15px; color: #E8E0D5; margin-bottom: 6px; }
+
+/* ── Settings list ── */
+.settings-section { margin-bottom: 20px; }
+.settings-section-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  color: #C7842E; text-transform: uppercase; margin-bottom: 8px;
+}
+.goal-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid #1E1A14; font-size: 13px;
+}
+.goal-row:last-child { border-bottom: none; }
+.goal-name { color: #E8E0D5; }
+.goal-meta { color: #9B8E82; font-size: 11px; }
+
+/* ── Explanation paragraph ── */
+.explanation-box {
+  font-size: 11px; color: #9B8E82; line-height: 1.6;
+  background: #1A1610; border: 1px solid #2A2520;
+  border-radius: 6px; padding: 10px 12px; margin-bottom: 12px;
+}
+
+/* ── Error state ── */
+.error-msg {
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 6px; color: #EF4444; font-size: 12px;
+  padding: 10px 12px; margin-top: 8px; line-height: 1.4;
+}
+
+/* ── Auth prompt ── */
+.auth-prompt {
+  text-align: center; padding: 24px 16px; color: #9B8E82; font-size: 13px; line-height: 1.6;
+}
+.auth-prompt a { color: #C7842E; text-decoration: none; }
+.auth-prompt a:hover { text-decoration: underline; }

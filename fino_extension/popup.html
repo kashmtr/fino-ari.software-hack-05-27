@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Fino</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══ ONBOARDING STEP 1: PDF Upload ══ -->
+<section id="onboard-1">
+  <div class="header">
+    <span class="header-title"><img class="header-logo" src="icons/logo.png" alt="">Fino Setup</span>
+  </div>
+  <div class="body">
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot-1-1"></div>
+      <div class="step-dot" id="dot-1-2"></div>
+      <div class="step-dot" id="dot-1-3"></div>
+    </div>
+    <div class="step-title">Step 1 of 3 — Bank Statement</div>
+    <div class="step-sub">Upload your PDF bank statement. We'll parse your transactions to estimate spending.</div>
+
+    <label for="pdf-input">Bank statement (PDF)</label>
+    <input type="file" id="pdf-input" accept=".pdf,application/pdf">
+    <div id="upload-status" class="hidden error-msg"></div>
+
+    <button class="btn btn-primary" id="upload-btn">Upload &amp; Continue →</button>
+    <button class="btn btn-secondary" id="skip-upload-btn">Skip for now</button>
+  </div>
+</section>
+
+<!-- ══ ONBOARDING STEP 2: Savings Goals ══ -->
+<section id="onboard-2" class="hidden">
+  <div class="header">
+    <span class="header-title"><img class="header-logo" src="icons/logo.png" alt="">Fino Setup</span>
+  </div>
+  <div class="body">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div class="step-title">Step 2 of 3 — Savings Goals</div>
+    <div class="step-sub">Add goals you're saving for. Each monthly contribution is deducted from your available balance.</div>
+
+    <div id="goals-forms">
+      <!-- Goal rows injected by JS -->
+    </div>
+    <button class="btn btn-secondary" id="add-goal-btn" style="margin-top:8px">+ Add goal</button>
+    <button class="btn btn-primary" id="goals-next-btn">Next →</button>
+  </div>
+</section>
+
+<!-- ══ ONBOARDING STEP 3: Income ══ -->
+<section id="onboard-3" class="hidden">
+  <div class="header">
+    <span class="header-title"><img class="header-logo" src="icons/logo.png" alt="">Fino Setup</span>
+  </div>
+  <div class="body">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <div class="step-title">Step 3 of 3 — Monthly Income</div>
+    <div class="step-sub">How much do you expect to earn this month? This is used when your statement doesn't include income.</div>
+
+    <label for="income-amount">Expected income this month ($)</label>
+    <input type="number" id="income-amount" min="0" step="100" placeholder="5000">
+
+    <label for="savings-buffer">Minimum savings buffer ($)</label>
+    <input type="number" id="savings-buffer" min="0" step="50" placeholder="500">
+
+    <div id="income-status" class="hidden error-msg"></div>
+    <button class="btn btn-primary" id="finish-btn">Finish — Let's go</button>
+  </div>
+</section>
+
+<!-- ══ MAIN SCREEN ══ -->
+<section id="main" class="hidden">
+  <div class="header">
+    <div>
+      <span class="header-title"><img class="header-logo" src="icons/logo.png" alt="">Checkout Check</span>
+      <span class="header-cart" id="cart-display"></span>
+    </div>
+    <button class="btn-settings" id="settings-btn" title="Settings">⚙</button>
+  </div>
+  <div class="body" id="main-body">
+    <!-- Populated by JS: spinner → verdict or manual-input or not-on-checkout -->
+  </div>
+</section>
+
+<!-- ══ SETTINGS ══ -->
+<section id="settings" class="hidden">
+  <div class="header">
+    <button class="btn-back" id="back-btn">← Back</button>
+    <span class="header-title"><img class="header-logo" src="icons/logo.png" alt="">Settings</span>
+    <span></span>
+  </div>
+  <div class="body">
+
+    <div class="settings-section">
+      <div class="settings-section-title">📄 Bank Statement</div>
+      <div id="statement-meta" style="font-size:12px;color:#9B8E82;margin-bottom:6px"></div>
+      <label for="settings-pdf-input">Re-upload PDF</label>
+      <input type="file" id="settings-pdf-input" accept=".pdf,application/pdf">
+      <button class="btn btn-secondary btn-small" id="settings-upload-btn" style="margin-top:6px;width:auto">Upload</button>
+      <div id="settings-upload-status" class="hidden error-msg"></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">🎯 Savings Goals</div>
+      <div id="settings-goals-list"></div>
+      <div id="add-goal-form" style="margin-top:8px">
+        <label for="sg-name">Goal name</label>
+        <input type="text" id="sg-name" placeholder="Emergency Fund">
+        <label for="sg-amount">Target amount ($)</label>
+        <input type="number" id="sg-amount" min="0" step="100" placeholder="3000">
+        <label for="sg-monthly">Monthly contribution ($)</label>
+        <input type="number" id="sg-monthly" min="0" step="50" placeholder="150">
+        <label for="sg-date">Target date (optional)</label>
+        <input type="date" id="sg-date">
+        <button class="btn btn-secondary btn-small" id="settings-add-goal-btn" style="margin-top:6px;width:auto">+ Add goal</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">💰 Monthly Income</div>
+      <div id="settings-income-meta" style="font-size:12px;color:#9B8E82;margin-bottom:6px"></div>
+      <label for="settings-income">Amount ($)</label>
+      <input type="number" id="settings-income" min="0" step="100">
+      <button class="btn btn-secondary btn-small" id="settings-income-btn" style="margin-top:6px;width:auto">Save</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">🛡 Savings Buffer</div>
+      <label for="settings-buffer">Minimum balance before verdict changes ($)</label>
+      <input type="number" id="settings-buffer" min="0" step="50">
+      <button class="btn btn-secondary btn-small" id="settings-buffer-btn" style="margin-top:6px;width:auto">Save</button>
+    </div>
+
+  </div>
+</section>
+
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Fino — Affordability Check",
+  "version": "1.0.0",
+  "description": "Instantly check if you can afford your cart using your ARI Fino data.",
+  "permissions": ["activeTab", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fino — Check affordability",
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    }
+  },
+  "icons": {
+    "16": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  }
+}
