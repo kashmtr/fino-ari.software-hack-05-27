@@ -1,14 +1,16 @@
-# 🦫 Fino — Can I Actually Afford This?
+<img width="200" height="200" alt="ChatGPT Image May 28, 2026, 05_01_28 PM" src="https://github.com/user-attachments/assets/a12ad34e-3934-4fce-bb02-2a6c42709ad9" />
+
+# Fino - Can I Actually Afford This?
 
 > Your wallet's hype-check before you hit "Buy Now."
 
 Fino is the little voice of reason that lives in your browser and your dashboard. Before you drop $80 on that thing you saw at 1am, Fino looks at your *real* bank data and tells you straight up: **YES**, **MAYBE**, or **NO**.
 
-No vibes. No guessing. Just math that actually has your back.
+No guessing. Just math that actually has your back.
 
 ---
 
-## 👩‍⚖️ For Judges — Quick Start
+## 👩‍⚖️ For ARI Hackathon Judges — Quick Start
 
 Wanna see Fino running on your own ARI setup? Here's how:
 
@@ -34,14 +36,14 @@ Wanna see Fino running on your own ARI setup? Here's how:
 
 Fino is an **affordability tracker** that connects to your real spending history and answers the one question that hits different: *"If I buy this, am I gonna be okay at the end of the month?"*
 
-It doesn't just look at what's in your account *right now* (because that number lies — rent hasn't come out yet, bestie). Instead, it learns your spending rhythm and **projects where you'll actually land** by month-end.
+It doesn't just look at what's in your account *right now* (because that number lies - the rent hasn't come out yet, buddy). Instead, it understands your spending rhythm and **projects where you'll actually land** by month-end.
 
 ## 🎯 Who's It For?
 
-- 🛍️ The impulse-buyer who needs a reality check at checkout
+- 🛍️ The impulse-buyer who needs a reality check at online shopping checkout/payment pages
 - 🎯 Anyone juggling savings goals + bills + "treat yourself" money
 - 📊 People who want money decisions backed by data, not anxiety
-- 💸 You, at 1am, cart full, finger hovering over the buy button
+- 💸 You, at 1am, cart full, finger hovering over another awesome jacket
 
 ## ✨ How It Works
 
@@ -54,7 +56,7 @@ You feed it a bank statement, set a couple of preferences, and it does the rest.
 
 ---
 
-## 🧮 The Math (a.k.a. how the sausage is made)
+## 🧮 The Math (what you don't do and regret later)
 
 Fino projects your **month-end balance** like this:
 
@@ -66,7 +68,7 @@ projected_month_end =  income
                      −  monthly_savings_target
 ```
 
-### 📈 The clever bit: projected spending
+### 🧠 The clever bit: projected spending
 
 Most apps just subtract what you've *already* spent. Fino is smarter — it predicts what you'll spend for the **rest** of the month based on your actual habits:
 
@@ -82,9 +84,9 @@ And that `historical_daily_rate`? It's pulled straight from your past statements
 historical_daily_rate = total_expenses_last_3_months ÷ days_in_that_period
 ```
 
-So on day 5 of the month, Fino doesn't think you're rich just because you've only spent $40. It knows your average and plans accordingly. 🧠
+So on day 5 of the month, Fino doesn't think you're rich just because you've only spent $40. It knows your average and plans accordingly. 
 
-It even tells you where you *historically* stood by this day of the month — so you know if you're ahead of or behind your usual pace.
+📈 It even tells you where you *historically* stood by this day of the month — so you know if you're ahead of or behind your usual pace.
 
 ### 💰 Where "income" comes from (in order of trust)
 
@@ -107,9 +109,9 @@ Every verdict also comes with a **plain-English explanation** so you actually un
 
 ## 🛡️ How It Fights Impulse Buys
 
-- **Real receipts** — it's your actual bank data, not a guess
+- **Real receipts** — it's your actual bank transactions, stored on your local database, not a guess
 - **Pattern brain** — "I've only spent a little so far" energy gets checked against your real average
-- **3-second friction** — that tiny pause at checkout is often all you need to *not* do the thing
+- **3-second friction** — that tiny pause at checkout is often all you need to *NOT* suffer the regret
 - **Full context** — it factors in your goals and savings *before* greenlighting a purchase
 - **Math in plain English** — it explains the reasoning so the "NO" actually lands
 
@@ -137,9 +139,9 @@ Fino works **best when you upload your last 3 months of bank statements.** That'
 
 ## 🚀 Get Started
 
-### Option A — Inside ARI (the dashboard)
+### Inside ARI (the dashboard)
 
-1. Log into ARI and head to **`/fino`**
+1. Start & Log into ARI (./ari start) and head to **`/fino`**
 2. Run through onboarding:
    - 📄 Upload your most recent RBC statement PDF
    - 💵 Set your monthly income (or let it estimate from the statement)
@@ -149,7 +151,7 @@ Fino works **best when you upload your last 3 months of bank statements.** That'
 
 You'll also see a Fino widget on your main ARI dashboard showing this month's vibe check.
 
-### Option B — Chrome Extension (the checkout sidekick)
+### Chrome Extension (the checkout sidekick)
 
 1. Grab the extension folder: **`fino_extension/`**
 2. Load it into Chrome:
@@ -209,6 +211,5 @@ Fino was built for the **ARI Hackathon** in **Toronto on May 27th, 2026.** 🇨�
 2. **Cindy Mai**
 3. **Kashish Malhotra**
 
----
 
-*Made with caffeine, questionable spending habits, and a pink beaver. 🦫💸*
+### Shoutout to Noem Eppel for building this exceptional open-source platform ARI - so we can build & vibe-code better 🦫💸
